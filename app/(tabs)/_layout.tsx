@@ -4,7 +4,7 @@ import { router, Tabs } from "expo-router";
 export default function TabsLayout() {
   return <Tabs screenOptions={{ headerShown: false }} >
     <Tabs.Screen
-    name="index"
+    name="(home)"
     options={{
       title: "Home",
       tabBarLabel: () => null,
@@ -35,7 +35,7 @@ export default function TabsLayout() {
     <Tabs.Screen name="activity" options={{ title: "Activity",
       tabBarLabel: () => null,
       tabBarIcon: ({ focused }) => (
-        <Ionicons name="add" color={focused ? "black" : "gray"} size={24} />
+        <Ionicons name="heart-outline" color={focused ? "black" : "gray"} size={24} />
       ),
     }} />
     <Tabs.Screen name="[username]" options={{ title: "[Username]",
@@ -44,6 +44,12 @@ export default function TabsLayout() {
         <Ionicons name="person-outline" color={focused ? "black" : "gray"} size={24} />
       ),
     }} />
+    <Tabs.Screen
+      name="(post)/[username]/post/[postID]"
+        options={{
+        tabBarLabel: () => null,
+        href: null,
+      }}
+    />
   </Tabs>;
-
 }
