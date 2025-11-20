@@ -1,15 +1,18 @@
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import * as Location from 'expo-location';
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
+    Alert,
     FlatList,
     Image,
+    Linking,
     Pressable,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -88,7 +91,39 @@ export default function Modal() {
 
     const removeImageFromThread = (id: string, uriToRemove: string) => { };
 
-    const getMyLocation = async (id: string) => { };
+    const getMyLocation = async (id: string) => {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        console.log('status', status);
+        if (status !== 'granted') {
+            try {
+                await Location.getCurrentPositionAsync({});
+            } catch (error) {
+                Alert.alert(
+                    'Location permission not granted',
+                    'Please grant location permission in settings',
+                    [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Open settings', onPress: () => Linking.openSettings() },
+                    ]
+                );
+                return;
+            }
+        }
+        console.log('getMyLocation');
+
+        const location = await Location.getCurrentPositionAsync({});
+        const address = await Location.reverseGeocodeAsync({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+        });
+        console.log('location', location);
+        console.log('address', address);
+        setThreads((prevThreads) =>
+            prevThreads.map((thread) =>
+                thread.id === id ? { ...thread, location: [location.coords.latitude, location.coords.longitude] } : thread
+            )
+        );
+    };
 
     const renderThreadItem = ({
         item,
