@@ -1,5 +1,7 @@
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
+import * as MediaLibrary from 'expo-media-library';
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -8,6 +10,7 @@ import {
     Image,
     Linking,
     Pressable,
+    Modal as RNModal,
     StyleSheet,
     Text,
     TextInput,
@@ -72,12 +75,8 @@ export default function Modal() {
         );
     };
 
-    const canAddThread = (threads.at(-1)?.text.trim().length ?? 0) > 0;
-    const canPost = threads.every((thread) => thread.text.trim().length > 0);
-
-    const addImageToThread = (id: string, uri: string) => { };
-
-    const addLocationToThread = (id: string, location: [number, number]) => { };
+    const canAddThread = (threads.at(-1)?.text.trim().length ?? 0) > 0 || (threads.at(-1)?.imageUris?.length ?? 0) > 0;
+    const canPost = threads.every((thread) => thread.text.trim().length > 0 || (thread.imageUris?.length ?? 0) > 0 );
 
     const removeThread = (id: string) => {
         setThreads((prevThreads) =>
@@ -85,11 +84,75 @@ export default function Modal() {
         );
     };
 
-    const pickImage = async (id: string) => { };
+    const pickImage = async (id: string) => {
+        let { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert(
+                'Permission not granted',
+                'Please grant permission to access your photos',
+                [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Open settings', onPress: () => Linking.openSettings() },
+                ]
+            );
+            return;
+        }
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images', 'livePhotos', 'videos'],
+            allowsMultipleSelection: true,
+            selectionLimit: 5,
+        });
 
-    const takePhoto = async (id: string) => { };
+        if (!result.canceled) {
+            setThreads((prevThreads) =>
+                prevThreads.map((thread) =>
+                    thread.id === id ? { ...thread, imageUris: thread.imageUris.concat(result.assets.map((asset) => asset.uri)) } : thread
+                )
+            );
+        }
+    };
 
-    const removeImageFromThread = (id: string, uriToRemove: string) => { };
+    const takePhoto = async (id: string) => {
+        let { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert(
+                'Permission not granted',
+                'Please grant permission to access your camera',
+                [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Open settings', onPress: () => Linking.openSettings() },
+                ]
+            );
+            return;
+        }
+        let result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ['images', 'livePhotos', 'videos'],
+            allowsMultipleSelection: true,
+            selectionLimit: 5,
+        });
+        console.log('result', result);
+
+        status = (await MediaLibrary.requestPermissionsAsync()).status;
+        if (status === 'granted' && result.assets?.[0].uri) {
+            MediaLibrary.saveToLibraryAsync(result.assets[0].uri);
+        }
+
+        if (!result.canceled) {
+            setThreads((prevThreads) =>
+                prevThreads.map((thread) =>
+                    thread.id === id ? { ...thread, imageUris: thread.imageUris.concat(result.assets.map((asset) => asset.uri)) } : thread
+                )
+            );
+        }
+    };
+
+    const removeImageFromThread = (id: string, uriToRemove: string) => {
+        setThreads((prevThreads) =>
+            prevThreads.map((thread) => 
+                thread.id === id ? { ...thread, imageUris: thread.imageUris.filter((uri) => uri !== uriToRemove)} : thread
+            )
+        );
+    };
 
     const getMyLocation = async (id: string) => {
         let { status } = await Location.requestForegroundPermissionsAsync();
@@ -251,6 +314,17 @@ export default function Modal() {
                 contentContainerStyle={{ backgroundColor: "#ddd" }}
                 keyboardShouldPersistTaps="handled"
             />
+
+            <RNModal visible={isDropdownVisible} transparent={true} animationType="fade">
+                <View style={styles.modalOverlay}>
+                    <View style={styles.dropdownContainer}>
+                        <Text>Dropdown</Text>
+                        <Pressable onPress={() => setIsDropdownVisible(false)}>
+                            <Text>Close</Text>
+                        </Pressable>
+                    </View>
+                </View>
+            </RNModal>
 
             <View style={[styles.footer, { paddingBottom: insets.bottom + 10 }]}>
                 <Pressable onPress={() => setIsDropdownVisible(true)} >
