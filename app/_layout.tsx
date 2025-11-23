@@ -1,33 +1,38 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
+
+interface User {
+  id: string;
+  name: string;
+  description: string;
+  profileImage: string;
+}
 
 export const AuthContext = createContext<{
-  user?: object;
-  login?: () => Promise<void>;
-  logout?: () => Promise<void>;
-}>({})
+  user: User | null;
+  login?: () => Promise<any>;
+  logout?: () => Promise<any>;
+}>({ user: null });
 
 export default function RootLayout() {
-  const [user, setUser] = useState(null);
-  const login = () => {
-    return fetch("/login", {
+  const [user, setUser] = useState<User | null>(null);
+  const login = async () => {
+    await fetch("/login", {
       method: "POST",
       body: JSON.stringify({
         email: "test@test.com",
         password: "test",
       }),
     })
-    .then((res) => {
+    .then(async (res) => {
       if(res.status >= 400) {
         throw new Error("Invalid credentials");
       }
-      return res.json();
-    })
-    .then(data => {
+      const data = await res.json();
       setUser(data.user);
-      return Promise.all([
+      await Promise.all([
         SecureStore.setItemAsync("accessToken", data.accessToken),
         SecureStore.setItemAsync("refreshToken", data.refreshToken),
         AsyncStorage.setItem("user", JSON.stringify(data.user)),
@@ -35,17 +40,27 @@ export default function RootLayout() {
     })
     .catch(error => {
       console.error(error);
+      throw error;
     });
   };
 
-  const logout = () => {
+  const logout = async () => {
     setUser(null);
-    return Promise.all([
+    await Promise.all([
       SecureStore.deleteItemAsync("accessToken"),
       SecureStore.deleteItemAsync("refreshToken"),
       AsyncStorage.removeItem("user"),
     ]);
   };
+
+  useEffect(() => {
+    AsyncStorage.getItem("user").then(user => {
+      if(user) {
+        setUser(user ? JSON.parse(user) : null);
+      }
+    });
+    // TODO: validate access token
+  }, []);
 
 
   return (

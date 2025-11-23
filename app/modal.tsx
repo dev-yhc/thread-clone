@@ -63,7 +63,9 @@ export default function Modal() {
 
     const replyOptions = ["Anyone", "Profiles you follow", "Mentioned only"];
 
-    const handleCancel = () => { };
+    const handleCancel = () => {
+        router.back();
+    };
 
     const handlePost = () => { };
 
