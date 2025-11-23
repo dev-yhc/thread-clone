@@ -49,7 +49,7 @@ const AnimatedTabBarButton = ({
 
 export default function TabsLayout() {
   const router = useRouter();
-  const isLoggedIn = true;
+  const isLoggedIn = false;
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const ref = useRef<typeof AnimatedTabBarButton>(null);
   const openLoginModal = () => {
@@ -58,6 +58,11 @@ export default function TabsLayout() {
 
   const closeLoginModal = () => {
     setIsLoginModalOpen(false);
+  };
+
+  const toLoginPage = () => {
+    closeLoginModal();
+    router.navigate("/login");
   };
 
   return (
@@ -153,8 +158,10 @@ export default function TabsLayout() {
       >
         <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
           <View style={{ backgroundColor: "white", padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
+            <Pressable onPress={toLoginPage}>
+              <Text>Login</Text>
+            </Pressable>
             <TouchableOpacity onPress={closeLoginModal}>
-              <Text>Login Modal</Text>
               <Ionicons name="close" size={24} color="black" />
             </TouchableOpacity>
           </View>
