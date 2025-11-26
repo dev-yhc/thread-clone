@@ -7,7 +7,7 @@ interface User {
   id: string;
   name: string;
   description: string;
-  profileImage: string;
+  profileImageUrl: string;
 }
 
 export const AuthContext = createContext<{
