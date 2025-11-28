@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { type BottomTabBarButtonProps } from "@react-navigation/bottom-tabs";
 import { Tabs, useRouter } from "expo-router";
 import React, { useContext, useRef, useState } from "react";
-import { Animated, Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Animated, Modal, Pressable, Text, TouchableOpacity, useColorScheme, View } from "react-native";
 import { AuthContext } from "../_layout";
 
 const AnimatedTabBarButton = ({
@@ -50,7 +50,7 @@ const AnimatedTabBarButton = ({
 
 export default function TabsLayout() {
   const router = useRouter();
-
+  const colorScheme = useColorScheme();
   const { user } = useContext(AuthContext);
   const isLoggedIn = !!user;
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -73,18 +73,22 @@ export default function TabsLayout() {
       <Tabs
         backBehavior="history"
         screenOptions={{
+          tabBarStyle: {
+            backgroundColor: colorScheme === "dark" ? "#101010" : "white",
+            borderTopWidth: 0,
+          },
           headerShown: false,
           tabBarButton: (props) => <AnimatedTabBarButton {...props} />,
         }}
         ref={ref}
-        >
+      >
         <Tabs.Screen
           name="(home)"
           options={{
             title: "Home",
             tabBarLabel: () => null,
             tabBarIcon: ({ focused }) => (
-              <Ionicons name="home" color={focused ? "black" : "gray"} size={24} />
+              <Ionicons name="home" color={focused ? colorScheme === "dark" ? "white" : "black" : "gray"} size={24} />
             ),
           }}
         />
@@ -92,7 +96,7 @@ export default function TabsLayout() {
           title: "Search",
           tabBarLabel: () => null,
           tabBarIcon: ({ focused }) => (
-            <Ionicons name="search" color={focused ? "black" : "gray"} size={24} />
+            <Ionicons name="search" color={focused ? colorScheme === "dark" ? "white" : "black" : "gray"} size={24} />
           ),
         }} />
         <Tabs.Screen name="add"
@@ -110,7 +114,7 @@ export default function TabsLayout() {
             title: "Add",
             tabBarLabel: () => null,
             tabBarIcon: ({ focused }) => (
-              <Ionicons name="add" color={focused ? "black" : "gray"} size={24} />
+              <Ionicons name="add" color={focused ? colorScheme === "dark" ? "white" : "black" : "gray"} size={24} />
             ),
           }} />
         <Tabs.Screen name="activity"
@@ -126,7 +130,7 @@ export default function TabsLayout() {
             title: "Activity",
             tabBarLabel: () => null,
             tabBarIcon: ({ focused }) => (
-              <Ionicons name="heart-outline" color={focused ? "black" : "gray"} size={24} />
+              <Ionicons name="heart-outline" color={focused ? colorScheme === "dark" ? "white" : "black" : "gray"} size={24} />
             ),
           }} />
         <Tabs.Screen name="[username]"
@@ -142,7 +146,7 @@ export default function TabsLayout() {
             title: "[Username]",
             tabBarLabel: () => null,
             tabBarIcon: ({ focused }) => (
-              <Ionicons name="person-outline" color={focused ? "black" : "gray"} size={24} />
+              <Ionicons name="person-outline" color={focused ? colorScheme === "dark" ? "white" : "black" : "gray"} size={24} />
             ),
           }} />
         <Tabs.Screen

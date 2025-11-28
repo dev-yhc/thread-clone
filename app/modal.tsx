@@ -1,9 +1,9 @@
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from 'expo-image-picker';
-import * as Location from 'expo-location';
-import * as MediaLibrary from 'expo-media-library';
+import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
+import * as MediaLibrary from "expo-media-library";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import React, { useState } from "react";
 import {
     Alert,
     FlatList,
@@ -15,6 +15,7 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
+    useColorScheme,
     View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -43,15 +44,18 @@ export function ListFooter({
                 />
             </View>
             <View>
-                <Pressable onPress={addThread} style={styles.input}>
-                    <Text style={{ color: canAddThread ? "#999" : "#aaa" }}>Add to thread</Text>
+                <Pressable onPress={addThread} style={[styles.input]}>
+                    <Text style={{ color: canAddThread ? "#999" : "#aaa" }}>
+                        Add to thread
+                    </Text>
                 </Pressable>
             </View>
         </View>
-    )
+    );
 }
 
 export default function Modal() {
+    const colorScheme = useColorScheme();
     const router = useRouter();
     const [threads, setThreads] = useState<Thread[]>([
         { id: Date.now().toString(), text: "", imageUris: [] },
@@ -64,6 +68,7 @@ export default function Modal() {
     const replyOptions = ["Anyone", "Profiles you follow", "Mentioned only"];
 
     const handleCancel = () => {
+        if (isPosting) return;
         router.back();
     };
 
@@ -77,8 +82,12 @@ export default function Modal() {
         );
     };
 
-    const canAddThread = (threads.at(-1)?.text.trim().length ?? 0) > 0 || (threads.at(-1)?.imageUris?.length ?? 0) > 0;
-    const canPost = threads.every((thread) => thread.text.trim().length > 0 || (thread.imageUris?.length ?? 0) > 0 );
+    const canAddThread =
+        (threads.at(-1)?.text.trim().length ?? 0) > 0 ||
+        (threads.at(-1)?.imageUris.length ?? 0) > 0;
+    const canPost = threads.every(
+        (thread) => thread.text.trim().length > 0 || thread.imageUris.length > 0
+    );
 
     const removeThread = (id: string) => {
         setThreads((prevThreads) =>
@@ -88,27 +97,36 @@ export default function Modal() {
 
     const pickImage = async (id: string) => {
         let { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') {
+        if (status !== "granted") {
             Alert.alert(
-                'Permission not granted',
-                'Please grant permission to access your photos',
+                "Photos permission not granted",
+                "Please grant photos permission to use this feature",
                 [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Open settings', onPress: () => Linking.openSettings() },
+                    { text: "Open settings", onPress: () => Linking.openSettings() },
+                    {
+                        text: "Cancel",
+                    },
                 ]
             );
             return;
         }
         let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ['images', 'livePhotos', 'videos'],
+            mediaTypes: ["images", "livePhotos", "videos"],
             allowsMultipleSelection: true,
             selectionLimit: 5,
         });
-
+        console.log("image result", result);
         if (!result.canceled) {
             setThreads((prevThreads) =>
                 prevThreads.map((thread) =>
-                    thread.id === id ? { ...thread, imageUris: thread.imageUris.concat(result.assets.map((asset) => asset.uri)) } : thread
+                    thread.id === id
+                        ? {
+                            ...thread,
+                            imageUris: thread.imageUris.concat(
+                                result.assets?.map((asset) => asset.uri) ?? []
+                            ),
+                        }
+                        : thread
                 )
             );
         }
@@ -116,33 +134,41 @@ export default function Modal() {
 
     const takePhoto = async (id: string) => {
         let { status } = await ImagePicker.requestCameraPermissionsAsync();
-        if (status !== 'granted') {
+        if (status !== "granted") {
             Alert.alert(
-                'Permission not granted',
-                'Please grant permission to access your camera',
+                "Camera permission not granted",
+                "Please grant camera permission to use this feature",
                 [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Open settings', onPress: () => Linking.openSettings() },
+                    { text: "Open settings", onPress: () => Linking.openSettings() },
+                    {
+                        text: "Cancel",
+                    },
                 ]
             );
             return;
         }
         let result = await ImagePicker.launchCameraAsync({
-            mediaTypes: ['images', 'livePhotos', 'videos'],
+            mediaTypes: ["images", "livePhotos", "videos"],
             allowsMultipleSelection: true,
             selectionLimit: 5,
         });
-        console.log('result', result);
-
+        console.log("camera result", result);
         status = (await MediaLibrary.requestPermissionsAsync()).status;
-        if (status === 'granted' && result.assets?.[0].uri) {
+        if (status === "granted" && result.assets?.[0].uri) {
             MediaLibrary.saveToLibraryAsync(result.assets[0].uri);
         }
 
         if (!result.canceled) {
             setThreads((prevThreads) =>
                 prevThreads.map((thread) =>
-                    thread.id === id ? { ...thread, imageUris: thread.imageUris.concat(result.assets.map((asset) => asset.uri)) } : thread
+                    thread.id === id
+                        ? {
+                            ...thread,
+                            imageUris: thread.imageUris.concat(
+                                result.assets?.map((asset) => asset.uri) ?? []
+                            ),
+                        }
+                        : thread
                 )
             );
         }
@@ -150,42 +176,49 @@ export default function Modal() {
 
     const removeImageFromThread = (id: string, uriToRemove: string) => {
         setThreads((prevThreads) =>
-            prevThreads.map((thread) => 
-                thread.id === id ? { ...thread, imageUris: thread.imageUris.filter((uri) => uri !== uriToRemove)} : thread
+            prevThreads.map((thread) =>
+                thread.id === id
+                    ? {
+                        ...thread,
+                        imageUris: thread.imageUris.filter((uri) => uri !== uriToRemove),
+                    }
+                    : thread
             )
         );
     };
 
     const getMyLocation = async (id: string) => {
         let { status } = await Location.requestForegroundPermissionsAsync();
-        console.log('status', status);
-        if (status !== 'granted') {
-            try {
-                await Location.getCurrentPositionAsync({});
-            } catch (error) {
-                Alert.alert(
-                    'Location permission not granted',
-                    'Please grant location permission in settings',
-                    [
-                        { text: 'Cancel', style: 'cancel' },
-                        { text: 'Open settings', onPress: () => Linking.openSettings() },
-                    ]
-                );
-                return;
-            }
+        console.log("getMyLocation", status);
+        if (status !== "granted") {
+            Alert.alert(
+                "Location permission not granted",
+                "Please grant location permission to use this feature",
+                [
+                    {
+                        text: "Open settings",
+                        onPress: () => {
+                            Linking.openSettings();
+                        },
+                    },
+                    {
+                        text: "Cancel",
+                    },
+                ]
+            );
+            return;
         }
-        console.log('getMyLocation');
 
         const location = await Location.getCurrentPositionAsync({});
-        const address = await Location.reverseGeocodeAsync({
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-        });
-        console.log('location', location);
-        console.log('address', address);
+
         setThreads((prevThreads) =>
             prevThreads.map((thread) =>
-                thread.id === id ? { ...thread, location: [location.coords.latitude, location.coords.longitude] } : thread
+                thread.id === id
+                    ? {
+                        ...thread,
+                        location: [location.coords.latitude, location.coords.longitude],
+                    }
+                    : thread
             )
         );
     };
@@ -207,7 +240,16 @@ export default function Modal() {
             </View>
             <View style={styles.contentContainer}>
                 <View style={styles.userInfoContainer}>
-                    <Text style={styles.username}>zerohch0</Text>
+                    <Text
+                        style={[
+                            styles.username,
+                            colorScheme === "dark"
+                                ? styles.usernameDark
+                                : styles.usernameLight,
+                        ]}
+                    >
+                        zerohch0
+                    </Text>
                     {index > 0 && (
                         <TouchableOpacity
                             onPress={() => removeThread(item.id)}
@@ -219,7 +261,10 @@ export default function Modal() {
                     )}
                 </View>
                 <TextInput
-                    style={styles.input}
+                    style={[
+                        styles.input,
+                        colorScheme === "dark" ? styles.inputDark : styles.inputLight,
+                    ]}
                     placeholder={"What's new?"}
                     placeholderTextColor="#999"
                     value={item.text}
@@ -288,16 +333,41 @@ export default function Modal() {
     );
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top }]}>
-            <View style={styles.header}>
+        <View
+            style={[
+                styles.container,
+                { paddingTop: insets.top },
+                colorScheme === "dark" ? styles.containerDark : styles.containerLight,
+            ]}
+        >
+            <View
+                style={[
+                    styles.header,
+                    colorScheme === "dark" ? styles.headerDark : styles.headerLight,
+                ]}
+            >
                 <Pressable onPress={handleCancel} disabled={isPosting}>
-                    <Text style={[styles.cancel, isPosting && styles.disabledText]}>Cancel</Text>
+                    <Text
+                        style={[
+                            styles.cancel,
+                            colorScheme === "dark" ? styles.cancelDark : styles.cancelLight,
+                            isPosting && styles.disabledText,
+                        ]}
+                    >
+                        Cancel
+                    </Text>
                 </Pressable>
-                <Text style={styles.title}>New Thread</Text>
+                <Text
+                    style={[
+                        styles.title,
+                        colorScheme === "dark" ? styles.titleDark : styles.titleLight,
+                    ]}
+                >
+                    New thread
+                </Text>
                 <View style={styles.headerRightPlaceholder} />
             </View>
 
-            {/* scrollView, sectionList */}
             <FlatList
                 data={threads}
                 keyExtractor={(item) => item.id}
@@ -307,37 +377,115 @@ export default function Modal() {
                         canAddThread={canAddThread}
                         addThread={() => {
                             if (canAddThread) {
-                                setThreads((prevThreads) => [...prevThreads, { id: Date.now().toString(), text: "", imageUris: [] }]);
+                                setThreads((prevThreads) => [
+                                    ...prevThreads,
+                                    { id: Date.now().toString(), text: "", imageUris: [] },
+                                ]);
                             }
                         }}
                     />
                 }
-                style={styles.list}
-                contentContainerStyle={{ backgroundColor: "#ddd" }}
+                style={[
+                    styles.list,
+                    colorScheme === "dark" ? styles.listDark : styles.listLight,
+                ]}
+                contentContainerStyle={{
+                    backgroundColor: colorScheme === "dark" ? "#101010" : "white",
+                }}
                 keyboardShouldPersistTaps="handled"
             />
 
-            <RNModal visible={isDropdownVisible} transparent={true} animationType="fade">
-                <View style={styles.modalOverlay}>
-                    <View style={styles.dropdownContainer}>
-                        <Text>Dropdown</Text>
-                        <Pressable onPress={() => setIsDropdownVisible(false)}>
-                            <Text>Close</Text>
-                        </Pressable>
+            <RNModal
+                transparent={true}
+                visible={isDropdownVisible}
+                animationType="fade"
+                onRequestClose={() => setIsDropdownVisible(false)}
+            >
+                <Pressable
+                    style={styles.modalOverlay}
+                    onPress={() => setIsDropdownVisible(false)}
+                >
+                    <View
+                        style={[
+                            styles.dropdownContainer,
+                            { bottom: insets.bottom + 30 },
+                            colorScheme === "dark"
+                                ? styles.dropdownContainerDark
+                                : styles.dropdownContainerLight,
+                        ]}
+                    >
+                        {replyOptions.map((option) => (
+                            <Pressable
+                                key={option}
+                                style={[
+                                    styles.dropdownOption,
+                                    option === replyOption && styles.selectedOption,
+                                ]}
+                                onPress={() => {
+                                    setReplyOption(option);
+                                    setIsDropdownVisible(false);
+                                }}
+                            >
+                                <Text
+                                    style={[
+                                        styles.dropdownOptionText,
+                                        colorScheme === "dark"
+                                            ? styles.dropdownOptionTextDark
+                                            : styles.dropdownOptionTextLight,
+                                        option === replyOption && styles.selectedOptionText,
+                                    ]}
+                                >
+                                    {option}
+                                </Text>
+                            </Pressable>
+                        ))}
                     </View>
-                </View>
+                </Pressable>
             </RNModal>
 
-            <View style={[styles.footer, { paddingBottom: insets.bottom + 10 }]}>
-                <Pressable onPress={() => setIsDropdownVisible(true)} >
-                    <Text style={styles.footerText}>{replyOption} can reply & quote</Text>
+            <View
+                style={[
+                    styles.footer,
+                    { paddingBottom: insets.bottom + 10 },
+                    colorScheme === "dark" ? styles.footerDark : styles.footerLight,
+                ]}
+            >
+                <Pressable onPress={() => setIsDropdownVisible(true)}>
+                    <Text
+                        style={[
+                            styles.footerText,
+                            colorScheme === "dark"
+                                ? styles.footerTextDark
+                                : styles.footerTextLight,
+                        ]}
+                    >
+                        {replyOption} can reply & quote
+                    </Text>
                 </Pressable>
                 <Pressable
-                    style={[styles.postButton, !canPost && styles.postButtonDisabled]}
-                    disabled={canPost}
+                    style={[
+                        styles.postButton,
+                        colorScheme === "dark"
+                            ? styles.postButtonDark
+                            : styles.postButtonLight,
+                        !canPost &&
+                        (colorScheme === "dark"
+                            ? styles.postButtonDisabledDark
+                            : styles.postButtonDisabledLight),
+                    ]}
+                    disabled={!canPost}
                     onPress={handlePost}
                 >
-                    <Text style={styles.postButtonText}>Post</Text>
+                    <Text
+                        style={[
+                            styles.postButtonText,
+                            colorScheme === "dark"
+                                ? styles.postButtonTextDark
+                                : styles.postButtonTextLight,
+                        ]}
+                    >
+                        Post
+                    </Text>
                 </Pressable>
             </View>
         </View>
@@ -349,32 +497,58 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#fff",
     },
+    containerLight: {
+        backgroundColor: "#fff",
+    },
+    containerDark: {
+        backgroundColor: "#101010",
+    },
     header: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
         paddingHorizontal: 16,
         paddingVertical: 12,
+    },
+    headerLight: {
         backgroundColor: "#fff",
+    },
+    headerDark: {
+        backgroundColor: "#101010",
     },
     headerRightPlaceholder: {
         width: 60,
     },
     cancel: {
-        color: "#000",
         fontSize: 16,
+    },
+    cancelLight: {
+        color: "#000",
+    },
+    cancelDark: {
+        color: "#fff",
     },
     disabledText: {
         color: "#ccc",
     },
     title: {
-        color: "#000",
         fontSize: 16,
         fontWeight: "600",
     },
+    titleLight: {
+        color: "#000",
+    },
+    titleDark: {
+        color: "#fff",
+    },
     list: {
         flex: 1,
-        backgroundColor: "#eee",
+    },
+    listLight: {
+        backgroundColor: "white",
+    },
+    listDark: {
+        backgroundColor: "#101010",
     },
     threadContainer: {
         flexDirection: "row",
@@ -417,15 +591,25 @@ const styles = StyleSheet.create({
     username: {
         fontWeight: "600",
         fontSize: 15,
+    },
+    usernameLight: {
         color: "#000",
+    },
+    usernameDark: {
+        color: "#fff",
     },
     input: {
         fontSize: 15,
-        color: "#000",
         paddingTop: 4,
         paddingBottom: 8,
         minHeight: 24,
         lineHeight: 20,
+    },
+    inputLight: {
+        color: "#000",
+    },
+    inputDark: {
+        color: "#fff",
     },
     actionButtons: {
         flexDirection: "row",
@@ -465,29 +649,52 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 16,
         paddingTop: 10,
-        backgroundColor: "#fff",
         position: "absolute",
         bottom: 0,
         left: 0,
         right: 0,
     },
+    footerLight: {
+        backgroundColor: "white",
+    },
+    footerDark: {
+        backgroundColor: "#101010",
+    },
     footerText: {
-        color: "#8e8e93",
         fontSize: 14,
+    },
+    footerTextLight: {
+        color: "#8e8e93",
+    },
+    footerTextDark: {
+        color: "#555",
     },
     postButton: {
         paddingVertical: 8,
         paddingHorizontal: 18,
-        backgroundColor: "#000",
         borderRadius: 18,
     },
-    postButtonDisabled: {
+    postButtonLight: {
+        backgroundColor: "black",
+    },
+    postButtonDark: {
+        backgroundColor: "white",
+    },
+    postButtonDisabledLight: {
         backgroundColor: "#ccc",
     },
+    postButtonDisabledDark: {
+        backgroundColor: "#555",
+    },
     postButtonText: {
-        color: "#fff",
         fontSize: 15,
         fontWeight: "600",
+    },
+    postButtonTextLight: {
+        color: "white",
+    },
+    postButtonTextDark: {
+        color: "black",
     },
     modalOverlay: {
         flex: 1,
@@ -495,11 +702,16 @@ const styles = StyleSheet.create({
         justifyContent: "flex-end",
     },
     dropdownContainer: {
-        backgroundColor: "#fff",
+        width: 200,
         borderRadius: 10,
         marginHorizontal: 10,
         overflow: "hidden",
-        marginBottom: 5,
+    },
+    dropdownContainerLight: {
+        backgroundColor: "white",
+    },
+    dropdownContainerDark: {
+        backgroundColor: "#101010",
     },
     dropdownOption: {
         paddingVertical: 15,
@@ -510,7 +722,12 @@ const styles = StyleSheet.create({
     selectedOption: {},
     dropdownOptionText: {
         fontSize: 16,
+    },
+    dropdownOptionTextLight: {
         color: "#000",
+    },
+    dropdownOptionTextDark: {
+        color: "#fff",
     },
     selectedOptionText: {
         fontWeight: "600",

@@ -1,29 +1,81 @@
+import Post from "@/components/Post";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-
+import {
+  StyleSheet,
+  useColorScheme,
+  View
+} from "react-native";
 export default function Index() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
-
-  // TODO: 모달 갔다오면 여러번 찍힘
-  // console.log(pathname);
+  const colorScheme = useColorScheme();
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <View style={styles.tabContainer}>
-        <View style={styles.tab}>
-          <Pressable onPress={() => router.push("/@yhc/post/1")}>
-            <Text>게시글1</Text>
-          </Pressable>
-          <Pressable onPress={() => router.push("/@yhc/post/2")}>
-            <Text>게시글2</Text>
-          </Pressable>
-          <Pressable onPress={() => router.push("/@yhc/post/3")}>
-            <Text>게시글3</Text>
-          </Pressable>  
-        </View>
-      </View>
+    <View
+      style={[
+        styles.container,
+        colorScheme === "dark" ? styles.containerDark : styles.containerLight,
+      ]}
+    >
+      <Post
+        item={{
+          id: "0",
+          username: "madison",
+          displayName: "Madison",
+          content: "What is this?",
+          timeAgo: "30 minutes ago",
+          likes: 10,
+          comments: 5,
+          reposts: 2,
+          isVerified: true,
+          avatar: "https://randomuser.me/api/portraits/men/2.jpg",
+          image: `https://picsum.photos/800/600?random=${Math.random()}`,
+          location: [37.125, 124.97],
+        }}
+      />
+      <Post
+        item={{
+          id: "1",
+          username: "zerocho",
+          displayName: "Zerocho",
+          content: "Hello, world!",
+          timeAgo: "1 hour ago",
+          likes: 10,
+          comments: 5,
+          reposts: 2,
+          isVerified: true,
+          avatar: "https://randomuser.me/api/portraits/men/1.jpg",
+        }}
+      />
+      <Post
+        item={{
+          id: "2",
+          username: "zerocho",
+          displayName: "Zerocho",
+          content: "Hello, world!",
+          timeAgo: "1 hour ago",
+          likes: 10,
+          comments: 5,
+          reposts: 2,
+          isVerified: true,
+          avatar: "https://randomuser.me/api/portraits/men/1.jpg",
+        }}
+      />
+      <Post
+        item={{
+          id: "3",
+          username: "karina",
+          displayName: "Karina",
+          content: "Hello, world!",
+          timeAgo: "1 hour ago",
+          likes: 10,
+          comments: 5,
+          reposts: 2,
+          isVerified: true,
+          avatar: "https://randomuser.me/api/portraits/women/3.jpg",
+          image: `https://picsum.photos/800/600?random=${Math.random()}`,
+          location: [37.125, 124.97],
+        }}
+      />
     </View>
   );
 }
@@ -32,36 +84,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  tabContainer: {
-    flexDirection: "row",
+  containerLight: {
+    backgroundColor: "white",
   },
-  tab: {
-    flex: 1,
+  containerDark: {
+    backgroundColor: "#101010",
   },
-  header: {
-    alignItems: "center",
+  textLight: {
+    color: "black",
   },
-  headerLogo: {
-    width: 42,
-    height: 42,
-  },
-  loginButton: {
-    position: "absolute",
-    backgroundColor: "black",
-    right: 20,
-    top: 0,
-    borderWidth: 1,
-    borderColor: "black",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 10,
-  },
-  loginButtonText: {
+  textDark: {
     color: "white",
-  },
-  menuButton: {
-    position: "absolute",
-    left: 20,
-    top: 0,
   },
 });

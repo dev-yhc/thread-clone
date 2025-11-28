@@ -1,20 +1,64 @@
 import { AuthContext } from "@/app/_layout";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useContext, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { usePathname } from "expo-router";
+import { useContext } from "react";
+import {
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View,
+} from "react-native";
 
 export default function Index() {
-  const router = useRouter();
-  const { username } = useLocalSearchParams();
-  const insets = useSafeAreaInsets();
-  const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
+  const colorScheme = useColorScheme();
+  const pathname = usePathname();
+  console.log(pathname);
   const { user } = useContext(AuthContext);
-  const isLoggedIn = !!user;
 
   return (
-    <View style={styles.tabBar}>
-      <Text>Threads will be here</Text>
+    <View
+      style={[
+        styles.container,
+        colorScheme === "dark" ? styles.containerDark : styles.containerLight,
+      ]}
+    >
+      {pathname === "/undefined" && (
+        <View style={styles.postInputContainer}>
+          <Image
+            source={{ uri: user?.profileImageUrl }}
+            style={styles.profileAvatar}
+          />
+          <Text
+            style={
+              colorScheme === "dark"
+                ? styles.postInputTextDark
+                : styles.postInputTextLight
+            }
+          >
+            What's new?
+          </Text>
+          <Pressable
+            style={[
+              styles.postButton,
+              colorScheme === "dark"
+                ? styles.postButtonDark
+                : styles.postButtonLight,
+            ]}
+          >
+            <Text
+              style={[
+                styles.postButtonText,
+                colorScheme === "dark"
+                  ? styles.postButtonTextDark
+                  : styles.postButtonTextLight,
+              ]}
+            >
+              Post
+            </Text>
+          </Pressable>
+        </View>
+      )}
     </View>
   );
 }
@@ -22,30 +66,58 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "white",
   },
-  header: {
-    height: 50,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  containerDark: {
+    backgroundColor: "#101010",
   },
-  menuButton: {
-    position: "absolute",
-    left: 20,
-    top: 10,
-  },
-  tabBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  profile: {
-  },
-  profileHeader: {
+  containerLight: {
+    backgroundColor: "white",
   },
   profileAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#555",
+    marginRight: 10,
+  },
+  postInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#aaa",
+  },
+  postButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    borderRadius: 22,
+    position: "absolute",
+    right: 0,
+  },
+  postButtonLight: {
+    backgroundColor: "black",
+  },
+  postButtonDark: {
+    backgroundColor: "white",
+  },
+  postButtonText: {
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  postButtonTextLight: {
+    color: "white",
+  },
+  postButtonTextDark: {
+    color: "black",
+  },
+  postInputText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  postInputTextLight: {
+    color: "black",
+  },
+  postInputTextDark: {
+    color: "#aaa",
   },
 });

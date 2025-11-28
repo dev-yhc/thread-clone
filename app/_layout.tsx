@@ -3,17 +3,21 @@ import { Stack } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { createContext, useEffect, useState } from "react";
 
-interface User {
+export interface User {
   id: string;
   name: string;
   description: string;
   profileImageUrl: string;
+  link?: string;
+  showInstagramBadge?: boolean;
+  isPrivate?: boolean;
 }
 
 export const AuthContext = createContext<{
   user: User | null;
   login?: () => Promise<any>;
   logout?: () => Promise<any>;
+  updateUser?: (user: User) => void;
 }>({ user: null });
 
 export default function RootLayout() {
@@ -53,6 +57,11 @@ export default function RootLayout() {
     ]);
   };
 
+  const updateUser = (user: User) => {
+    setUser(user);
+    AsyncStorage.setItem("user", JSON.stringify(user));
+  };
+
   useEffect(() => {
     AsyncStorage.getItem("user").then(user => {
       if(user) {
@@ -64,7 +73,7 @@ export default function RootLayout() {
 
 
   return (
-    <AuthContext value={{ user, login, logout }}>
+    <AuthContext value={{ user, login, logout, updateUser }}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="modal" options={{ presentation: "modal" }} />
       </Stack>
