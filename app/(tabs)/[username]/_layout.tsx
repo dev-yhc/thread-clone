@@ -16,10 +16,11 @@ import { useContext, useState } from "react";
 import {
   Image,
   Pressable,
+  Share,
   StyleSheet,
   Text,
   View,
-  useColorScheme
+  useColorScheme,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 const { Navigator } = createMaterialTopTabNavigator();
@@ -47,8 +48,15 @@ export default function TabLayout() {
 
   const handleCloseEditModal = () => setIsEditModalVisible(false);
 
-  const handleShareProfile = () => {
-    console.log("share profile");
+  const handleShareProfile = async () => {
+    try {
+      await Share.share({
+        message: `Check out my profile: thread://@${username}`,
+        url: `thread://@${username}`,
+      });
+    } catch (error) {
+      console.error("Error sharing profile:", error);
+    }
   };
 
   return (
