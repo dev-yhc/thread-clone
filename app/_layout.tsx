@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { StatusBar } from "expo-status-bar";
 import { createContext, useEffect, useState } from "react";
 
 export interface User {
@@ -74,6 +75,7 @@ export default function RootLayout() {
 
   return (
     <AuthContext value={{ user, login, logout, updateUser }}>
+      <StatusBar style="auto" animated />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="modal" options={{ presentation: "modal" }} />
       </Stack>
