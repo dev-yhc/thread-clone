@@ -1,9 +1,9 @@
 import { AuthContext } from "@/app/_layout";
-import Post from "@/components/Post";
+import Post, { Post as PostType } from "@/components/Post";
+import { FlashList } from "@shopify/flash-list";
 import { useLocalSearchParams, usePathname } from "expo-router";
 import { useContext, useState } from "react";
 import {
-    FlatList,
     Image,
     Pressable,
     StyleSheet,
@@ -77,9 +77,9 @@ import {
             </Pressable>
           </View>
         )}
-        <FlatList
+        <FlashList
           data={threads}
-          renderItem={({ item }) => <Post item={item} />}
+          renderItem={({ item }: { item: PostType }) => <Post item={item} />}
           onEndReached={onEndReached}
           onEndReachedThreshold={2}
         />

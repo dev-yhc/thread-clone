@@ -1,19 +1,13 @@
 import Post, { type Post as PostType } from "@/components/Post";
+import { FlashList } from "@shopify/flash-list";
 import { usePathname } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
-import { FlatList, StyleSheet, useColorScheme, View } from "react-native";
+import { useCallback, useState } from "react";
+import { StyleSheet, useColorScheme, View } from "react-native";
 
 export default function Following() {
   const colorScheme = useColorScheme();
   const path = usePathname();
   const [posts, setPosts] = useState<PostType[]>([]);
-
-  useEffect(() => {
-    fetch(`/posts?type=following`)
-      .then((res) => res.json())
-      .then((data) => setPosts(data.posts))
-      .catch((err) => console.error(err));
-  }, [path]);
 
   const onEndReached = useCallback(() => {
     fetch(`/posts?type=following&cursor=${posts.at(-1)?.id}`)
@@ -32,11 +26,12 @@ export default function Following() {
         colorScheme === "dark" ? styles.containerDark : styles.containerLight,
       ]}
     >
-      <FlatList
+      <FlashList
         data={posts}
-        renderItem={({ item }) => <Post item={item} />}
+        renderItem={({ item }: { item: PostType }) => <Post item={item} />}
         onEndReached={onEndReached}
         onEndReachedThreshold={2}
+        estimatedItemSize={350}
       />
     </View>
   );

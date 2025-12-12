@@ -96,7 +96,7 @@ if (__DEV__) {
                         content: post.content,
                         imageUrls: post.imageUrls,
                         location: post.location,
-                        user: schema.find("user", "zerohch0"),
+                        user: schema.find("user", "yhc"),
                     });
                 });
                 return posts;

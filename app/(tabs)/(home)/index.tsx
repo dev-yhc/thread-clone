@@ -1,8 +1,8 @@
 import Post, { type Post as PostType } from "@/components/Post";
+import { FlashList } from "@shopify/flash-list";
 import { usePathname } from "expo-router";
 import { useCallback, useState } from "react";
 import {
-  FlatList,
   StyleSheet,
   useColorScheme,
   View
@@ -12,13 +12,6 @@ export default function Index() {
   const colorScheme = useColorScheme();
   const path = usePathname();
   const [posts, setPosts] = useState<PostType[]>([]);
-
-  // useEffect(() => {
-  //   fetch(`/posts?type=${path.split("/").pop()}`)
-  //     .then((res) => res.json())
-  //     .then((data) => setPosts(data.posts))
-  //     .catch((err) => console.error(err));
-  // }, [path]);
 
   const onEndReached = useCallback(() => {
     console.log("onEndReached", posts.at(-1)?.id);
@@ -40,12 +33,12 @@ export default function Index() {
         colorScheme === "dark" ? styles.containerDark : styles.containerLight,
       ]}
     >
-      <FlatList
+      <FlashList
         data={posts}
         renderItem={({ item }) => <Post item={item} />}
         onEndReached={onEndReached}
         onEndReachedThreshold={2}
-        // estimatedItemSize={350}
+        estimatedItemSize={350}
       />
     </View>
   );

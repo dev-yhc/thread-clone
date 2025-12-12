@@ -1,9 +1,9 @@
 import { AuthContext } from "@/app/_layout";
 import Post from "@/components/Post";
+import { FlashList } from "@shopify/flash-list";
 import { useLocalSearchParams, usePathname } from "expo-router";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import {
-  FlatList,
   Image,
   Pressable,
   StyleSheet,
@@ -12,6 +12,8 @@ import {
   View,
 } from "react-native";
 
+import { Post as PostType } from "@/components/Post";
+
 export default function Index() {
   const colorScheme = useColorScheme();
   const pathname = usePathname();
@@ -19,16 +21,6 @@ export default function Index() {
   console.log(pathname);
   const { user } = useContext(AuthContext);
   const [threads, setThreads] = useState<any[]>([]);
-
-  useEffect(() => {
-    console.log("useEffect", username);
-    fetch(`/users/${username?.slice(1)}/threads`)
-      .then((res) => res.json())
-      .then((data) => setThreads(data.posts))
-      .catch((err) => console.error(err));
-  }, []);
-
-  console.log("threads", threads);
 
   const onEndReached = () => {
     console.log(
@@ -87,11 +79,12 @@ export default function Index() {
           </Pressable>
         </View>
       )}
-      <FlatList
+      <FlashList
         data={threads}
-        renderItem={({ item }) => <Post item={item} />}
+        renderItem={({ item }: { item: PostType }) => <Post item={item} />}
         onEndReached={onEndReached}
         onEndReachedThreshold={2}
+        estimatedItemSize={350}
       />
     </View>
   );

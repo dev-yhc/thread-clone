@@ -1,4 +1,5 @@
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import { FlashList } from "@shopify/flash-list";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import * as MediaLibrary from "expo-media-library";
@@ -272,7 +273,7 @@ export default function Modal() {
                     multiline
                 />
                 {item.imageUris && item.imageUris.length > 0 && (
-                    <FlatList
+                    <FlashList
                         data={item.imageUris}
                         renderItem={({ item: uri, index: imgIndex }) => (
                             <View style={styles.imagePreviewContainer}>

@@ -1,10 +1,10 @@
 
 import { AuthContext } from "@/app/_layout";
 import Post from "@/components/Post";
+import { FlashList } from "@shopify/flash-list";
 import { useLocalSearchParams, usePathname } from "expo-router";
 import { useContext, useState } from "react";
 import {
-    FlatList,
     Image,
     Pressable,
     StyleSheet,
@@ -78,7 +78,7 @@ export default function Replies() {
                     </Pressable>
                 </View>
             )}
-            <FlatList
+            <FlashList
                 data={threads}
                 renderItem={({ item }) => <Post item={item} />}
                 onEndReached={onEndReached}
