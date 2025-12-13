@@ -60,7 +60,6 @@ function AnimatedAppLoader({
       }),
     })
       .then((res) => {
-        console.log("res", res, res.status);
         if (res.status >= 400) {
           return Alert.alert("Error", "Invalid credentials");
         }

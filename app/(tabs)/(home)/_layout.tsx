@@ -12,9 +12,15 @@ import type {
 } from "@react-navigation/native";
 import { BlurView } from "expo-blur";
 import { Slot, router, withLayoutContext } from "expo-router";
-import { useContext, useState } from "react";
-import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View, useColorScheme } from "react-native";
+import { createContext, useContext, useState } from "react";
+import { Pressable, StyleSheet, Text, TouchableOpacity, View, useColorScheme } from "react-native";
+import Animated, {
+    SharedValue,
+    useAnimatedStyle,
+    useSharedValue,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 const { Navigator } = createMaterialTopTabNavigator();
 
 export const MaterialTopTabs = withLayoutContext<
@@ -24,14 +30,28 @@ export const MaterialTopTabs = withLayoutContext<
     MaterialTopTabNavigationEventMap
 >(Navigator);
 
+export const AnimatedContext = createContext<{
+    pullDownPosition: SharedValue<number>;
+}>({
+    pullDownPosition: null as any,
+});
+
 export default function TabLayout() {
     const colorScheme = useColorScheme();
     const insets = useSafeAreaInsets();
     const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
     const { user } = useContext(AuthContext);
     const isLoggedIn = !!user;
+    const pullDownPosition = useSharedValue(0);
+
+    const rotateStyle = useAnimatedStyle(() => {
+        return {
+            transform: [{ rotate: `${pullDownPosition.value}deg` }],
+        };
+    });
 
     return (
+        <AnimatedContext value={{ pullDownPosition }}>
         <View
             style={[
                 styles.container,
@@ -54,9 +74,9 @@ export default function TabLayout() {
                     isVisible={isSideMenuOpen}
                     onClose={() => setIsSideMenuOpen(false)}
                 />
-                <Image
+                <Animated.Image
                     source={require("../../../assets/images/react-logo.png")}
-                    style={styles.headerLogo}
+                    style={[styles.headerLogo, rotateStyle]}
                 />
                 {!isLoggedIn && (
                     <TouchableOpacity
@@ -103,6 +123,7 @@ export default function TabLayout() {
                 <Slot />
             )}
         </View>
+        </AnimatedContext>
     );
 }
 

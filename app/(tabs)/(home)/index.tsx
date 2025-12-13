@@ -1,17 +1,28 @@
 import Post, { type Post as PostType } from "@/components/Post";
 import { FlashList } from "@shopify/flash-list";
+import * as Haptics from "expo-haptics";
 import { usePathname } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useContext, useRef, useState } from "react";
 import {
+  PanResponder,
   StyleSheet,
   useColorScheme,
-  View
+  View,
 } from "react-native";
+import Animated, { clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { AnimatedContext } from "./_layout";
+
+
+const AnimatedFlastList = Animated.createAnimatedComponent(FlashList<PostType>);
 
 export default function Index() {
   const colorScheme = useColorScheme();
   const path = usePathname();
   const [posts, setPosts] = useState<PostType[]>([]);
+  const scrollPosition = useSharedValue(0);
+  const { pullDownPosition } = useContext(AnimatedContext);
+
+  const isReadyToRefresh = useSharedValue(false);
 
   const onEndReached = useCallback(() => {
     console.log("onEndReached", posts.at(-1)?.id);
@@ -24,23 +35,92 @@ export default function Index() {
       });
   }, [posts, path]);
 
-  console.log("posts", posts.length);
+  const onRefresh = useCallback((done: () => void) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    fetch("/posts")
+      .then((res) => res.json())
+      .then((data) => {
+        setPosts(data.posts);
+      })
+      .finally(() => {
+        done()
+      });
+  }, []);
+
+  const onPanRelease = () => {
+    pullDownPosition.value = withTiming(isReadyToRefresh.value ? 60 : 0, { duration: 180 });
+    if (isReadyToRefresh.value) {
+      onRefresh(() => {
+        pullDownPosition.value = withTiming(0, { duration: 180 });
+      });
+      console.log("onRefresh");
+    }
+  }
+
+  const panResponderRef = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderMove: (event, gestureState) => {
+        const max = 120;
+        pullDownPosition.value = clamp(gestureState.dy, 0, max);
+        console.log("pull", pullDownPosition.value);
+
+        if (
+          pullDownPosition.value >= max / 2 &&
+          isReadyToRefresh.value === false
+        ) {
+          isReadyToRefresh.value = true;
+        }
+        if (
+          pullDownPosition.value < max / 2 &&
+          isReadyToRefresh.value === true
+        ) {
+          isReadyToRefresh.value = false;
+        }
+      },
+      onPanResponderRelease: onPanRelease,
+      onPanResponderTerminate: onPanRelease,
+    })
+  );  
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      console.log("onScroll", event.contentOffset.y);
+      scrollPosition.value = event.contentOffset.y;
+    },
+  });
+
+  const pullDownStyles = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          translateY: pullDownPosition.value,
+        },
+      ],
+    };
+  });
 
   return (
-    <View
+    <Animated.View
       style={[
         styles.container,
         colorScheme === "dark" ? styles.containerDark : styles.containerLight,
+        pullDownStyles,
       ]}
+      {...panResponderRef.current.panHandlers}
     >
-      <FlashList
+      <AnimatedFlastList
+        refreshControl={<View />}
         data={posts}
+        nestedScrollEnabled={true}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         renderItem={({ item }) => <Post item={item} />}
         onEndReached={onEndReached}
         onEndReachedThreshold={2}
         estimatedItemSize={350}
       />
-    </View>
+    </Animated.View>
   );
 }
 
