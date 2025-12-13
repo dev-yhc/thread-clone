@@ -77,7 +77,7 @@ export default function Index() {
           onClose={() => setIsSideMenuOpen(false)}
         />
       </View>
-      <View style={styles.tabBar}>
+      <ScrollView horizontal contentContainerStyle={styles.tabBarContainer} style={styles.tabBar}>
         <View>
           <TouchableOpacity
             style={[
@@ -260,7 +260,7 @@ export default function Index() {
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </ScrollView>
       <ScrollView>
         <ActivityItem
           id="1"
@@ -378,6 +378,10 @@ const styles = StyleSheet.create({
     color: "white",
   },
   tabBar: {
+    flexGrow: 0,
+  },
+  tabBarContainer: {
+    height: 40,
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 10,
