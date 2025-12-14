@@ -45,6 +45,7 @@ export default function TabLayout() {
 
   useEffect(() => {
     if (username !== `@${user?.id}`) {
+      setProfile(null);
       fetch(`users/${username}`)
       .then((res) => res.json())
       .then((data) => {
