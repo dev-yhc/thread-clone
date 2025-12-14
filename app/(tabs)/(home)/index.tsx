@@ -85,7 +85,6 @@ export default function Index() {
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
-      console.log("onScroll", event.contentOffset.y);
       scrollPosition.value = event.contentOffset.y;
     },
   });
