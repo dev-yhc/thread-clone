@@ -1,7 +1,7 @@
 import { AuthContext } from "@/app/_layout";
 import Post from "@/components/Post";
 import { FlashList } from "@shopify/flash-list";
-import { useLocalSearchParams, usePathname } from "expo-router";
+import { router, useLocalSearchParams, usePathname } from "expo-router";
 import { useContext, useEffect, useState } from "react";
 import {
   Image,
@@ -13,6 +13,53 @@ import {
 } from "react-native";
 
 import { Post as PostType } from "@/components/Post";
+
+
+const Header = () => {
+  const { user } = useContext(AuthContext);
+  const colorScheme = useColorScheme();
+  const pathname = usePathname();
+
+  return pathname === "/@" + user?.id ? (
+    <View style={styles.postInputContainer}>
+      <Image
+        source={{ uri: user?.profileImageUrl }}
+        style={styles.profileAvatar}
+      />
+      <Text
+        style={
+          colorScheme === "dark"
+            ? styles.postInputTextDark
+            : styles.postInputTextLight
+        }
+      >
+        What's new?
+      </Text>
+      <Pressable
+        onPress={() => {
+          router.navigate("/modal");
+        }}
+        style={[
+          styles.postButton,
+          colorScheme === "dark"
+            ? styles.postButtonDark
+            : styles.postButtonLight,
+        ]}
+      >
+        <Text
+          style={[
+            styles.postButtonText,
+            colorScheme === "dark"
+              ? styles.postButtonTextDark
+              : styles.postButtonTextLight,
+          ]}
+        >
+          Post
+        </Text>
+      </Pressable>
+    </View>
+  ) : null;
+};
 
 export default function Index() {
   const colorScheme = useColorScheme();
@@ -51,44 +98,9 @@ export default function Index() {
         colorScheme === "dark" ? styles.containerDark : styles.containerLight,
       ]}
     >
-      {pathname === "/@" + user?.id && (
-        <View style={styles.postInputContainer}>
-          <Image
-            source={{ uri: user?.profileImageUrl }}
-            style={styles.profileAvatar}
-          />
-          <Text
-            style={
-              colorScheme === "dark"
-                ? styles.postInputTextDark
-                : styles.postInputTextLight
-            }
-          >
-            What's new?
-          </Text>
-          <Pressable
-            style={[
-              styles.postButton,
-              colorScheme === "dark"
-                ? styles.postButtonDark
-                : styles.postButtonLight,
-            ]}
-          >
-            <Text
-              style={[
-                styles.postButtonText,
-                colorScheme === "dark"
-                  ? styles.postButtonTextDark
-                  : styles.postButtonTextLight,
-              ]}
-            >
-              Post
-            </Text>
-          </Pressable>
-        </View>
-      )}
       <FlashList
         data={threads}
+        ListHeaderComponent={<Header />}
         renderItem={({ item }: { item: PostType }) => <Post item={item} />}
         onEndReached={onEndReached}
         onEndReachedThreshold={2}
