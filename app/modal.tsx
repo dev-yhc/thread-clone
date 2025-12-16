@@ -20,6 +20,7 @@ import {
     View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 interface Thread {
     id: string;
@@ -74,7 +75,6 @@ export default function Modal() {
     };
 
     const handlePost = () => {
-        console.log("handlePost", threads);
         const formData = new FormData();
         threads.forEach((thread, index) => {
             formData.append(`posts[${index}][id]`, thread.id);
@@ -93,6 +93,14 @@ export default function Modal() {
             });
         });
 
+        Toast.show({
+            text1: "Posting...",
+            type: "customToast",
+            visibilityTime: 5000,
+            position: "bottom",
+            bottomOffset: 20,
+        });
+
         fetch("/posts", {
             method: "POST",
             headers: {
@@ -104,9 +112,33 @@ export default function Modal() {
             .then((data) => {
                 console.log("post result", data);
                 router.replace(`/@${data[0].userId}/post/${data[0].id}`)
+
+                Toast.hide();
+                Toast.show({
+                    text1: "Post posted",
+                    type: "customToast",
+                    visibilityTime: 5000,
+                    position: "bottom",
+                    bottomOffset: 20,
+                    onPress: () => {
+                        console.log("post pressed", data);
+                        router.replace(`/@${data[0].userId}/post/${data[0].id}`);
+                        Toast.hide();
+                    },
+                });
+
             })
             .catch((err) => {
                 console.error("post error", err);
+
+                Toast.hide();
+                Toast.show({
+                    text1: "Post failed",
+                    type: "customToast",
+                    visibilityTime: 5000,
+                    position: "bottom",
+                    bottomOffset: 20,
+                });
             });
     };
 
